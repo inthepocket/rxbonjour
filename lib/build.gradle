@@ -1,6 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
+
 group='com.github.xiaogegexiao'
+
 android {
     compileSdkVersion 28
 
@@ -27,4 +29,5 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.2.1'
     implementation 'com.trello.rxlifecycle2:rxlifecycle:2.2.2'
     implementation 'com.trello.rxlifecycle2:rxlifecycle-components:2.2.2'
-}    implementation 'org.jmdns:jmdns:3.5.5'
+    implementation 'org.jmdns:jmdns:3.5.5'
+}
