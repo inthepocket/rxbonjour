@@ -4,6 +4,7 @@ package com.xiao.rxbonjour.discovery;
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.xiao.rxbonjour.common.OnSubscribeEvent;
 import com.xiao.rxbonjour.exceptions.NsdException;
@@ -32,6 +33,7 @@ public class CompatOnSubscribeEvent implements OnSubscribeEvent<NetworkServiceDi
     private final String protocol;
     private Context context;
     private final String SUFFIX = "local.";
+    private final String TAG = this.getClass().getCanonicalName();
 
     private final Action dismissAction = new Action() {
         @Override
@@ -40,7 +42,9 @@ public class CompatOnSubscribeEvent implements OnSubscribeEvent<NetworkServiceDi
                 try {
                     jmDNS.removeServiceListener(protocol, listener);
                     jmDNS.close();
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                    Log.e(TAG, String.format("Exception occurred while remove service listener: %s", e.toString()));
+                }
             }
         }
     };
@@ -99,6 +103,7 @@ public class CompatOnSubscribeEvent implements OnSubscribeEvent<NetworkServiceDi
             jmDNS = JmDNS.create(inetAddress, inetAddress.toString());
             jmDNS.addServiceListener(protocol, listener);
         } catch (IOException e) {
+            Log.e(TAG, String.format("Exception occurred while starting subscription: %s", e.toString()));
             emitter.onError(e);
         }
 
