@@ -97,7 +97,7 @@ public class CompatOnSubscribeEvent implements OnSubscribeEvent<NetworkServiceDi
     }
 
     private void startSubscription(ObservableEmitter<? super NetworkServiceDiscoveryInfo> emitter) {
-        final WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        final WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         try {
             final InetAddress inetAddress = buildAddress(wifiManager);
             jmDNS = JmDNS.create(inetAddress, inetAddress.toString());
