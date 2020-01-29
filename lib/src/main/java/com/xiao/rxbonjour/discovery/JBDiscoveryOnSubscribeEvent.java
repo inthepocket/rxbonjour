@@ -27,7 +27,6 @@ import static com.xiao.rxbonjour.model.NsdStatus.REMOVED;
 public class JBDiscoveryOnSubscribeEvent implements OnSubscribeEvent<NsdServiceInfoWrapper> {
 
     private NsdManager nsdManager;
-    private WifiManager wifiManager;
     private final String protocol;
     private ObservableEmitter<? super NsdServiceInfoWrapper> emitter;
     private WifiManager.MulticastLock multicastLock;
@@ -38,16 +37,21 @@ public class JBDiscoveryOnSubscribeEvent implements OnSubscribeEvent<NsdServiceI
 
         this.protocol = protocol;
         this.nsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
-        this.wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        final WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+        if (wifiManager != null) {
+            multicastLock = wifiManager.createMulticastLock("com.xiao.rxbonjour.multicastlock");
+            multicastLock.setReferenceCounted(true);
+        }
     }
 
     private final Action dismissAction = new Action() {
         @Override
         public void run() throws Exception {
-            if (nsdManager != null) {
-                // release lock 👼
+            if (multicastLock != null) {
                 multicastLock.release();
-                
+            }
+            if (nsdManager != null) {
                 nsdManager.stopServiceDiscovery(discoveryListener);
                 nsdManager = null;
             }
@@ -101,10 +105,9 @@ public class JBDiscoveryOnSubscribeEvent implements OnSubscribeEvent<NsdServiceI
         if (!NsdUtils.isValidProtocol(protocol)) {
             emitter.onError(new NsdException());
         } else {
-            // get lock 👼
-            multicastLock = wifiManager.createMulticastLock("rxBonjourMulticastLock");
-            multicastLock.setReferenceCounted(true);
-            multicastLock.acquire();
+            if (multicastLock != null) {
+                multicastLock.acquire();
+            }
 
             nsdManager.discoverServices(protocol, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
             emitter.setCancellable(new Cancellable() {
