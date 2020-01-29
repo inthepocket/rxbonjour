@@ -3,6 +3,7 @@ package com.xiao.rxbonjour.discovery;
 import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
@@ -26,8 +27,10 @@ import static com.xiao.rxbonjour.model.NsdStatus.REMOVED;
 public class JBDiscoveryOnSubscribeEvent implements OnSubscribeEvent<NsdServiceInfoWrapper> {
 
     private NsdManager nsdManager;
+    private WifiManager wifiManager;
     private final String protocol;
     private ObservableEmitter<? super NsdServiceInfoWrapper> emitter;
+    private WifiManager.MulticastLock multicastLock;
 
 
     public JBDiscoveryOnSubscribeEvent(@NonNull final Context context,
@@ -35,12 +38,16 @@ public class JBDiscoveryOnSubscribeEvent implements OnSubscribeEvent<NsdServiceI
 
         this.protocol = protocol;
         this.nsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
+        this.wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
 
     private final Action dismissAction = new Action() {
         @Override
         public void run() throws Exception {
             if (nsdManager != null) {
+                // release lock 👼
+                multicastLock.release();
+                
                 nsdManager.stopServiceDiscovery(discoveryListener);
                 nsdManager = null;
             }
@@ -94,6 +101,11 @@ public class JBDiscoveryOnSubscribeEvent implements OnSubscribeEvent<NsdServiceI
         if (!NsdUtils.isValidProtocol(protocol)) {
             emitter.onError(new NsdException());
         } else {
+            // get lock 👼
+            WifiManager.MulticastLock multicastLock = wifiManager.createMulticastLock("rxBonjourMulticastLock");
+            multicastLock.setReferenceCounted(true);
+            multicastLock.acquire();
+
             nsdManager.discoverServices(protocol, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
             emitter.setCancellable(new Cancellable() {
                 @Override
