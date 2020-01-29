@@ -102,7 +102,7 @@ public class JBDiscoveryOnSubscribeEvent implements OnSubscribeEvent<NsdServiceI
             emitter.onError(new NsdException());
         } else {
             // get lock 👼
-            WifiManager.MulticastLock multicastLock = wifiManager.createMulticastLock("rxBonjourMulticastLock");
+            multicastLock = wifiManager.createMulticastLock("rxBonjourMulticastLock");
             multicastLock.setReferenceCounted(true);
             multicastLock.acquire();
 
