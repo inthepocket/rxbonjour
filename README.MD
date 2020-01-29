@@ -29,7 +29,7 @@ Import the library in your app's module ```build.gradle```
 ```groovy
 dependencies {
     ...
-    implementation 'com.github.inthepocket:rxbonjour:1.0.9'
+    implementation 'com.github.inthepocket:rxbonjour:1.0.10'
 }
 ```
 
